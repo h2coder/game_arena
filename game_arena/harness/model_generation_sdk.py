@@ -16,12 +16,14 @@
 
 import base64
 import dataclasses
+import os
 from typing import Any, Mapping, Sequence
 
 from absl import logging
 import anthropic
 from anthropic import _types as anthropic_internal_types
 from anthropic import types as anthropic_types
+from game_arena.harness import config
 from game_arena.harness import model_generation
 from game_arena.harness import tournament_util
 from google import genai as google_genai
@@ -80,12 +82,21 @@ class AIStudioModel(model_generation.MultimodalModel):
       model_options: Mapping[str, Any] | None = None,
       api_options: Mapping[str, Any] | None = None,
       api_key: str | None = None,
+      config_path: str | None = None,
   ):
     super().__init__(
         model_name, model_options=model_options, api_options=api_options
     )
-    # If API key is None, defaults to GOOGLE_API_KEY in environment.
-    self._client = google_genai.Client(api_key=api_key)
+    
+    # Load configuration
+    app_config = config.load_config(config_path)
+    
+    # Get API key from parameter, config, or environment
+    final_api_key = config.get_api_key_with_fallback(
+        api_key, "GOOGLE_API_KEY", app_config
+    )
+    
+    self._client = google_genai.Client(api_key=final_api_key)
 
   def _generate(
       self,
@@ -243,12 +254,39 @@ class OpenAIChatCompletionsModel(model_generation.MultimodalModel):
       model_options: Mapping[str, Any] | None = None,
       api_options: Mapping[str, Any] | None = None,
       api_key: str | None = None,
+      base_url: str | None = None,
+      config_path: str | None = None,
   ):
     super().__init__(
         model_name, model_options=model_options, api_options=api_options
     )
-    # If API key is None, defaults to OPENAI_API_KEY in environment.
-    self._client = openai.OpenAI(api_key=api_key)
+    
+    # Load configuration
+    app_config = config.load_config(config_path)
+    
+    # Get API key from parameter, config, or environment
+    final_api_key = config.get_api_key_with_fallback(
+        api_key, "OPENAI_API_KEY", app_config
+    )
+    
+    # Get base URL from parameter or config
+    final_base_url = base_url
+    if final_base_url is None and app_config.openai.base_url:
+      final_base_url = app_config.openai.base_url
+    
+    # Extract extra_headers from api_options if provided
+    extra_headers = None
+    if api_options and "extra_headers" in api_options:
+      extra_headers = api_options["extra_headers"]
+    
+    # Initialize OpenAI client with optional base_url and extra_headers
+    client_kwargs = {"api_key": final_api_key}
+    if final_base_url:
+      client_kwargs["base_url"] = final_base_url
+    if extra_headers:
+      client_kwargs["default_headers"] = extra_headers
+    
+    self._client = openai.OpenAI(**client_kwargs)
 
   # TODO(google-deepmind): Add error handling.
   def _generate(
@@ -499,12 +537,29 @@ class AnthropicModel(model_generation.Model):
       model_options: Mapping[str, Any] | None = None,
       api_options: Mapping[str, Any] | None = None,
       api_key: str | None = None,
+      config_path: str | None = None,
   ):
     super().__init__(
         model_name, model_options=model_options, api_options=api_options
     )
-    # If API key is None, defaults to ANTHROPIC_API_KEY in environment.
-    self._client = anthropic.Anthropic(api_key=api_key)
+    
+    # Load configuration
+    app_config = config.load_config(config_path)
+    
+    # Get API key from parameter, config, or environment
+    final_api_key = config.get_api_key_with_fallback(
+        api_key, "ANTHROPIC_API_KEY", app_config
+    )
+    
+    # Get base URL from config (Anthropic doesn't typically use custom base URLs, but we'll support it)
+    final_base_url = None
+    if app_config.anthropic.base_url:
+      final_base_url = app_config.anthropic.base_url
+    
+    if final_base_url:
+      self._client = anthropic.Anthropic(api_key=final_api_key, base_url=final_base_url)
+    else:
+      self._client = anthropic.Anthropic(api_key=final_api_key)
 
   def _generate(
       self,

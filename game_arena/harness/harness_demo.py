@@ -42,10 +42,16 @@ _GEMINI_MODEL = flags.DEFINE_string(
     "Gemini model to play as player one.",
 )
 
-_OPENAI_MODEL = flags.DEFINE_string(
-    "openai_model",
-    "gpt-4.1",
-    "OpenAI model to play as player two.",
+_DS_R1_MODEL = flags.DEFINE_string(
+    "deepseek_r1_model",
+    "deepseek/deepseek-r1-0528:free",
+    "DeepSeek R1 model to play as player two.",
+)
+
+_DS_V3_MODEL = flags.DEFINE_string(
+    "deepseek_r3_model",
+    "deepseek/deepseek-chat-v3-0324:free",
+    "DeepSeek V3 model to play as player two.",
 )
 
 _PARSER_CHOICE = flags.DEFINE_enum_class(
@@ -53,6 +59,12 @@ _PARSER_CHOICE = flags.DEFINE_enum_class(
     tournament_util.ParserChoice.RULE_THEN_SOFT,
     tournament_util.ParserChoice,
     "Move parser to use.",
+)
+
+_CONFIG_PATH = flags.DEFINE_string(
+    "config_path",
+    None,
+    "Path to configuration file. If None, uses default locations.",
 )
 
 
@@ -66,11 +78,14 @@ def main(_) -> None:
   prompt_template = prompts.PromptTemplate.NO_LEGAL_ACTIONS
 
   # Set up model generation:
-  model_player_one = model_generation_sdk.AIStudioModel(
-      model_name=_GEMINI_MODEL.value
+  model_player_one = model_generation_sdk.OpenAIChatCompletionsModel(
+      model_name=_DS_R1_MODEL.value,
+      config_path=_CONFIG_PATH.value
   )
+
   model_player_two = model_generation_sdk.OpenAIChatCompletionsModel(
-      model_name=_OPENAI_MODEL.value
+      model_name=_DS_V3_MODEL.value,
+      config_path=_CONFIG_PATH.value
   )
 
   # Set up parser;

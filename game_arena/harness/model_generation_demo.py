@@ -146,60 +146,11 @@ It is now your turn. Play your strongest move. The move MUST be legal. Reason st
     image_input = None
 
   models = {
-      "gemini": model_generation_sdk.AIStudioModel(
-          model_name="models/gemini-2.5-flash",
-          api_options={"include_thoughts": True},
+      "deepseek_r1_0528": model_generation_sdk.OpenAIChatCompletionsModel(
+          model_name="deepseek/deepseek-r1-0528:free",
       ),
-      "openai_sync": model_generation_sdk.OpenAIChatCompletionsModel(
-          model_name="o3",
-          api_options={"timeout": 60 * 10},  # 10 minutes
-      ),
-      "openai_streaming": model_generation_sdk.OpenAIChatCompletionsModel(
-          model_name="o3",
-          api_options={
-              "timeout": 60 * 10,  # 10 minutes
-              "stream": True,
-          },
-      ),
-      "anthropic": model_generation_sdk.AnthropicModel(
-          model_name="claude-sonnet-4-20250514",
-      ),
-      "anthropic_streaming": model_generation_sdk.AnthropicModel(
-          model_name="claude-sonnet-4-20250514",
-          api_options={"stream": True},
-          model_options={
-              "max_tokens": 64000,
-              "thinking": {"type": "enabled", "budget_tokens": 32000},
-          },
-      ),
-      "anthropic_sync": model_generation_sdk.AnthropicModel(
-          model_name="claude-sonnet-4-20250514",
-          api_options={"stream": False},
-          model_options={
-              "thinking": {"type": "enabled", "budget_tokens": 8192}
-          },
-      ),
-      "deepseek": model_generation_http.TogetherAIModel(
-          model_name="deepseek-ai/DeepSeek-R1-0528-tput",
-      ),
-      "kimi": model_generation_http.TogetherAIModel(
-          model_name="moonshotai/Kimi-K2-Instruct",
-      ),
-      "xai_grok-4_streaming": model_generation_http.XAIModel(
-          model_name="grok-4",
-          api_options={"stream": True},
-      ),
-      "xai_grok-3-mini-fast_streaming": model_generation_http.XAIModel(
-          model_name="grok-3-mini-fast",
-          api_options={"stream": True},
-      ),
-      "xai_grok-3-mini-fast_sync": model_generation_http.XAIModel(
-          model_name="grok-3-mini-fast",
-          api_options={"stream": False},
-      ),
-      "qwen3_thinking_parallel": model_generation_http.TogetherAIModel(
-          model_name="Qwen/Qwen3-235B-A22B-Thinking-2507",
-          api_options={"parallel_attempts": 3, "timeout": 45},
+      "deepseek_v3_0324": model_generation_sdk.OpenAIChatCompletionsModel(
+          model_name="deepseek/deepseek-chat-v3-0324:free",
       ),
   }
 

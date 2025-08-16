@@ -26,6 +26,7 @@ import time
 from typing import Any, Mapping, Sequence
 from absl import logging
 import aiohttp
+from game_arena.harness import config
 from game_arena.harness import model_generation
 from game_arena.harness import tournament_util
 import requests
@@ -86,22 +87,31 @@ class TogetherAIModel(model_generation.MultimodalModel):
       model_options: Mapping[str, Any] | None = None,
       api_options: Mapping[str, Any] | None = None,
       api_key: str | None = None,
+      config_path: str | None = None,
   ):
     super().__init__(
         model_name, model_options=model_options, api_options=api_options
     )
-    # If API key is None, defaults to TOGETHER_API_KEY in environment.
-    if api_key is None:
-      try:
-        api_key = os.environ["TOGETHER_API_KEY"]
-      except KeyError as e:
-        logging.error(
-            "TOGETHER_API_KEY environment variable not set. Please set it to"
-            " use %s.",
-            self._model_name,
-        )
-        raise e
-    self._headers = {"Authorization": f"Bearer {api_key}"}
+    
+    # Load configuration
+    app_config = config.load_config(config_path)
+    
+    # Get API key from parameter, config, or environment
+    final_api_key = config.get_api_key_with_fallback(
+        api_key, "TOGETHER_API_KEY", app_config
+    )
+    
+    if final_api_key is None:
+      logging.error(
+          "TOGETHER_API_KEY not found in config, parameter, or environment. Please set it to use %s.",
+          self._model_name,
+      )
+      raise ValueError("TOGETHER_API_KEY is required")
+    
+    self._headers = {"Authorization": f"Bearer {final_api_key}"}
+    
+    # Set base URL from config or use default
+    self._base_url = app_config.together.base_url or "https://api.together.xyz"
 
   # TODO(google-deepmind): Add error handling.
   def _generate(
@@ -287,6 +297,7 @@ class XAIModel(model_generation.MultimodalModel):
       api_options: Mapping[str, Any] | None = None,
       api_key: str | None = None,
       debug: bool = False,
+      config_path: str | None = None,
   ):
     super().__init__(
         model_name, model_options=model_options, api_options=api_options
@@ -295,16 +306,24 @@ class XAIModel(model_generation.MultimodalModel):
       self._model_options = {}
     if self._api_options is None:
       self._api_options = {}
-
-    if api_key is None:
-      api_key = os.environ["XAI_API_KEY"]
-
-    if api_key is None:
+    
+    # Load configuration
+    app_config = config.load_config(config_path)
+    
+    # Get API key from parameter, config, or environment
+    final_api_key = config.get_api_key_with_fallback(
+        api_key, "XAI_API_KEY", app_config
+    )
+    
+    if final_api_key is None:
       raise ValueError("XAI API key not found.")
 
-    self._headers = {"Authorization": f"Bearer {api_key}"}
+    self._headers = {"Authorization": f"Bearer {final_api_key}"}
     self._debug = debug
     self._stream = self._api_options.get("stream", True)
+    
+    # Set base URL from config or use default
+    self._base_url = app_config.xai.base_url or "https://api.x.ai"
 
   # TODO(google-deepmind): Add error handling.
   def _post_request(self, request: Mapping[str, Any], stream: bool):

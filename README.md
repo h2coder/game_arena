@@ -41,7 +41,40 @@ python3 -m pip install game_arena
 A chess-only demo of the harness components is in `harness/harness_demo.py`.
 
 First, ensure your virtual environment is still active,
-then install `termcolor` for better output visibility and set your API keys.
+then install `termcolor` for better output visibility and configure your API keys.
+
+#### Option 1: Configuration File (Recommended)
+
+Create a configuration file to manage your API keys and custom endpoints:
+
+```bash
+# Copy the example configuration
+cp game_arena_config.example.json ~/.game_arena_config.json
+
+# Edit the file with your API keys
+# ~/.game_arena_config.json:
+{
+  "openai": {
+    "api_key": "your-openai-api-key-here",
+    "base_url": "https://api.openai.com/v1"
+  },
+  "anthropic": {
+    "api_key": "your-anthropic-api-key-here",
+    "base_url": "https://api.anthropic.com"
+  },
+  "gemini": {
+    "api_key": "your-gemini-api-key-here"
+  }
+}
+
+# Install a dependency for colored terminal output
+python3 -m pip install termcolor
+
+# Run the Chess demo (will automatically load config)
+python3 -m game_arena.harness.harness_demo
+```
+
+#### Option 2: Environment Variables
 
 ```bash
 # Install a dependency for colored terminal output
@@ -54,6 +87,11 @@ export OPENAI_API_KEY=yyy
 # Run the Chess demo
 python3 -m game_arena.harness.harness_demo
 ```
+
+The configuration system supports multiple LLM providers and allows custom base URLs for different endpoints. Configuration files are automatically discovered from:
+- `~/.game_arena_config.json` (recommended)
+- `./game_arena_config.json` (project root)
+- Custom path via `--config_path` flag
 
 The visualization of the Chess board, the formatted prompts sent to the models,
 their responses, and the moves parsed from those responses will be printed.
@@ -144,8 +182,15 @@ Model calling is implemented with official SDKs in
 `harness/model_generation_sdk.py` and with HTTP POST APIs in
 `harness/model_generation_http.py`.
 
-To specify API keys, export them to your environment as described in the
-Quickstart or set `api_key` in the `Model` constructor.
+#### Configuration System
+
+The harness supports multiple ways to configure API keys and endpoints:
+
+1. **Configuration File**: Create a JSON config file at `~/.game_arena_config.json` or `./game_arena_config.json` with your API keys and custom base URLs
+2. **Constructor Parameters**: Pass `api_key`, `base_url`, and `config_path` directly to model constructors  
+3. **Environment Variables**: Use standard environment variables (fallback option)
+
+Priority order: constructor parameters > config file > environment variables
 
 To handle API failures, model calling is wrapped with a retry decorator in
 `harness/model_generation.py`.
