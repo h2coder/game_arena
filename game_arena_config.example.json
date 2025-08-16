@@ -1,0 +1,34 @@
+{
+  "_comment": "Game Arena Configuration File",
+  "_description": "Copy this file to ~/.game_arena_config.json or game_arena_config.json in your project root",
+  
+  "openai": {
+    "_comment": "OpenAI API configuration",
+    "api_key": "your-openai-api-key-here",
+    "base_url": "https://api.openai.com"
+  },
+  
+  "anthropic": {
+    "_comment": "Anthropic/Claude API configuration", 
+    "api_key": "your-anthropic-api-key-here",
+    "base_url": "https://api.anthropic.com"
+  },
+  
+  "gemini": {
+    "_comment": "Google Gemini API configuration",
+    "api_key": "your-gemini-api-key-here",
+    "base_url": null
+  },
+  
+  "together": {
+    "_comment": "Together.AI API configuration",
+    "api_key": "your-together-api-key-here", 
+    "base_url": "https://api.together.xyz"
+  },
+  
+  "xai": {
+    "_comment": "xAI API configuration",
+    "api_key": "your-xai-api-key-here",
+    "base_url": "https://api.x.ai"
+  }
+}
