@@ -107,3 +107,4 @@ Key dependencies include:
 ## Must rules
 - Always activate the python virtaul environment game_arena_venv before python related cmdlets.
 - For unittest, always search all test files and run the unittest directly.
+- Git commit use my real github account, git ssh key for this device already setup in github profile.
